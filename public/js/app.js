@@ -1804,7 +1804,9 @@ __webpack_require__.r(__webpack_exports__);
     return {
       messages: [],
       sendMessage: '',
-      users: []
+      users: [],
+      activeUser: false,
+      typingTimer: false
     };
   },
   created: function created() {
@@ -1821,6 +1823,16 @@ __webpack_require__.r(__webpack_exports__);
       });
     }).listen('MessageEvent', function (event) {
       _this.messages.push(event.msg);
+    }).listenForWhisper('typing', function (user) {
+      _this.activeUser = user;
+
+      if (_this.typingTimer) {
+        clearTimeout(_this.typingTimer);
+      }
+
+      _this.typingTimer = setTimeout(function () {
+        _this.activeUser = false;
+      }, 3000);
     });
   },
   methods: {
@@ -1840,6 +1852,9 @@ __webpack_require__.r(__webpack_exports__);
         message: this.sendMessage
       });
       this.sendMessage = '';
+    },
+    sendTypingEvent: function sendTypingEvent() {
+      Echo.join('chat').whisper('typing', this.user);
     }
   }
 });
@@ -46918,6 +46933,7 @@ var render = function() {
                 }
                 return _vm.postMessage($event)
               },
+              keydown: _vm.sendTypingEvent,
               input: function($event) {
                 if ($event.target.composing) {
                   return
@@ -46928,7 +46944,11 @@ var render = function() {
           })
         ]),
         _vm._v(" "),
-        _c("span", { staticClass: "text-muted" }, [_vm._v("user is typing...")])
+        _vm.activeUser
+          ? _c("span", { staticClass: "text-muted" }, [
+              _vm._v(_vm._s(_vm.activeUser.name) + " is typing...")
+            ])
+          : _vm._e()
       ]),
       _vm._v(" "),
       _c("div", { staticClass: "col-md-4" }, [
