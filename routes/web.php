@@ -1,5 +1,5 @@
 <?php
-
+use App\Events\DemoEvent;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -12,9 +12,18 @@
 */
 
 Route::get('/', function () {
+	broadcast(new DemoEvent('halo'));
     return view('welcome');
 });
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
+Route::middleware('auth')->group(function () {
+	Route::get('/home', 'HomeController@index')->name('home');
+
+	Route::get('/chats', 'ChatController@index');
+
+});
+
+Route::get('/messages', 'ChatController@message');
+Route::post('/messages', 'ChatController@postmessage');
